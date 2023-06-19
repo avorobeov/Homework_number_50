@@ -102,7 +102,7 @@ namespace Homework_number_50
                 Console.ReadKey();
                 Console.Clear();
 
-                if(TryChecksResource() == false)
+                if (TryChecksResource() == false)
                 {
                     isExit = true;
                 }
