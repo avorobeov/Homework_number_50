@@ -55,9 +55,10 @@ namespace Homework_number_50
 
     class CarService
     {
-        private int _money = 100;
         private List<Detail> _details;
         private Queue<Car> _cars;
+
+        private int _money = 100;
 
         public CarService(int money, List<Detail> details, Queue<Car> cars)
         {
@@ -101,7 +102,7 @@ namespace Homework_number_50
                 Console.ReadKey();
                 Console.Clear();
 
-                if (_cars.Count <= 0)
+                if(TryChecksResource() == false)
                 {
                     isExit = true;
                 }
@@ -114,7 +115,7 @@ namespace Homework_number_50
 
             Car car = _cars.Dequeue();
 
-            Console.WriteLine($"У автомобиля неисправен: {car.DamagedPart}");
+            Console.WriteLine($"\nУ автомобиля неисправен: {car.DamagedPart}\n");
 
             Console.Write("Укажите деталь которую нужно заменить у клиента:");
             string titleDetail = Console.ReadLine();
@@ -125,7 +126,18 @@ namespace Homework_number_50
 
                 WriteCostRepair(priceRepair, detail);
 
-                ReplacePart(detail, car, priceRepair);
+                if (TryReplacePart(detail, car) == true)
+                {
+                    Console.WriteLine($"Всё хорошо мы заработали {priceRepair}");
+
+                    _money += priceRepair;
+                }
+                else
+                {
+                    Console.WriteLine($"Оператор ошибся с деталью и вы вынуждены возместить ущерб клиенту в розмере {priceRepair}\n");
+
+                    _money -= priceRepair;
+                }
 
             }
             else
@@ -159,30 +171,19 @@ namespace Homework_number_50
             int percentageCostDetail = 25;
             int maxDivisor = 100;
 
-            return (detail.Price * percentageCostDetail / maxDivisor);
+            return (detail.Price * percentageCostDetail / maxDivisor) + detail.Price;
         }
 
-        private void ReplacePart(Detail detail, Car car, int priceRepair)
+        private bool TryReplacePart(Detail detail, Car car)
         {
-            if (detail.Title.ToLower() == car.DamagedPart.ToLower())
-            {
-                Console.WriteLine($"Всё хорошо мы заработали {priceRepair}");
-
-                _money += priceRepair;
-            }
-            else
-            {
-                Console.WriteLine($"Оператор ошибся с деталью и вы вынуждены возместить ущерб клиенту в розмере {priceRepair}\n");
-
-                _money -= priceRepair;
-            }
+            return detail.Title.ToLower() == car.DamagedPart.ToLower();
         }
 
         private void WriteCostRepair(int priceRepair, Detail detail)
         {
-            Console.WriteLine($"У автомобиля поврежден: {detail.Title}\n" +
+            Console.WriteLine($"\n\n\nУ автомобиля поврежден: {detail.Title}\n" +
                               $"Цена дитали: {detail.Price}\n" +
-                              $"Конечная сумма к оплате: {priceRepair}");
+                              $"Конечная сумма к оплате: {priceRepair}\n\n\n");
         }
 
         private void ShowInfo()
@@ -190,6 +191,11 @@ namespace Homework_number_50
             Console.WriteLine($"У вас количество клиентов в очереди {_cars.Count}\n" +
                               $"Количество деталей {_details.Count}\n" +
                               $"Количество денег {_money}\n\r\n");
+        }
+
+        private bool TryChecksResource()
+        {
+            return _cars.Count > 0 && _details.Count > 0 && _money > 0;
         }
     }
 }
