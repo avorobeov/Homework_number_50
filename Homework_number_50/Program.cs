@@ -12,14 +12,14 @@ namespace Homework_number_50
 
             int startingAmountMoney = 30;
 
-            details.Add(new Detail(10, "тормоза"));
-            details.Add(new Detail(15, "двигатель"));
-            details.Add(new Detail(5, "колисо"));
+            details.Add(new Detail(10, "Battery"));
+            details.Add(new Detail(15, "Engine"));
+            details.Add(new Detail(5, "Wheel"));
 
-            cars.Enqueue(new Car("тормоза"));
-            cars.Enqueue(new Car("тормоза"));
-            cars.Enqueue(new Car("двигатель"));
-            cars.Enqueue(new Car("колисо"));
+            cars.Enqueue(new Car("Battery", true, false, true));
+            cars.Enqueue(new Car("Battery", true, false, true));
+            cars.Enqueue(new Car("Engine", false, true, true));
+            cars.Enqueue(new Car("Wheel", true, true, false));
 
             CarService carService = new CarService(startingAmountMoney, details, cars);
             carService.Work();
@@ -40,12 +40,40 @@ namespace Homework_number_50
 
     class Car
     {
-        public Car(string damagedPart)
+        public Car(string damagedPart, bool isEngine, bool isBattery, bool isWheel)
         {
             DamagedPart = damagedPart;
+            IsEngine = isEngine;
+            IsBattery = isBattery;
+            IsWheel = isWheel;
         }
 
         public string DamagedPart { get; private set; }
+        public bool IsEngine { get; private set; }
+        public bool IsBattery { get; private set; }
+        public bool IsWheel { get; private set; }
+
+        public bool TryFix(Detail detail)
+        {
+            const string TitleDetailEngine = "Engine";
+            const string TitleDetailBattery = "Battery";
+            const string TitleDetailWheel = "Wheel";
+
+            switch (detail.Title)
+            {
+                case TitleDetailEngine:
+                    return IsEngine == false;
+
+                case TitleDetailBattery:
+                    return IsBattery == false;
+
+                case TitleDetailWheel:
+                    return IsWheel == false;
+
+                default:
+                    return false;
+            }
+        }
     }
 
     class CarService
@@ -61,6 +89,8 @@ namespace Homework_number_50
             _details = details;
             _cars = cars;
         }
+
+        private bool _isWorking => _cars.Count > 0 && _details.Count > 0 && _money > 0;
 
         public void Work()
         {
@@ -97,7 +127,7 @@ namespace Homework_number_50
                 Console.ReadKey();
                 Console.Clear();
 
-                if (TryChecksResource() == false)
+                if (_isWorking == false)
                 {
                     isExit = true;
                 }
@@ -106,7 +136,7 @@ namespace Homework_number_50
 
         private void ServeCustomer()
         {
-            const int AmountFine = 10;
+            int amountFine = 10;
 
             Car car = _cars.Dequeue();
 
@@ -137,9 +167,9 @@ namespace Homework_number_50
             }
             else
             {
-                Console.Write($"Сожалению у нас нет этой детали мы готовы выплатить вам компенсацию в размере {AmountFine}");
+                Console.Write($"Сожалению у нас нет этой детали мы готовы выплатить вам компенсацию в размере {amountFine}");
 
-                _money -= AmountFine;
+                _money -= amountFine;
             }
         }
 
@@ -171,7 +201,7 @@ namespace Homework_number_50
 
         private bool TryReplacePart(Detail detail, Car car)
         {
-            return detail.Title.ToLower() == car.DamagedPart.ToLower();
+            return car.TryFix(detail);
         }
 
         private void WriteCostRepair(int priceRepair, Detail detail)
@@ -186,11 +216,6 @@ namespace Homework_number_50
             Console.WriteLine($"У вас количество клиентов в очереди {_cars.Count}\n" +
                               $"Количество деталей {_details.Count}\n" +
                               $"Количество денег {_money}\n\r\n");
-        }
-
-        private bool TryChecksResource()
-        {
-            return _cars.Count > 0 && _details.Count > 0 && _money > 0;
         }
     }
 }
