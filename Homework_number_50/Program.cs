@@ -12,14 +12,26 @@ namespace Homework_number_50
 
             int startingAmountMoney = 30;
 
-            details.Add(new Detail(10, "Battery"));
-            details.Add(new Detail(15, "Engine"));
-            details.Add(new Detail(5, "Wheel"));
+            details.Add(new Detail(10, "Battery",false));
+            details.Add(new Detail(15, "Engine", false));
+            details.Add(new Detail(5, "Wheel", false));
 
-            cars.Enqueue(new Car("Battery", true, false, true));
-            cars.Enqueue(new Car("Battery", true, false, true));
-            cars.Enqueue(new Car("Engine", false, true, true));
-            cars.Enqueue(new Car("Wheel", true, true, false));
+            cars.Enqueue(new Car("Battery", new List<Detail> {
+                                            new Detail(10,"Battery",true),
+                                            new Detail(15,"Engine",false),
+                                            new Detail(5,"Wheel",false )}));
+            cars.Enqueue(new Car("Engine", new List<Detail> {
+                                            new Detail(10,"Battery",false),
+                                            new Detail(15,"Engine",true),
+                                            new Detail(5,"Wheel",false )}));
+            cars.Enqueue(new Car("Engine", new List<Detail> {
+                                            new Detail(10,"Battery",false),
+                                            new Detail(15,"Engine",true),
+                                            new Detail(5,"Wheel",false )}));
+            cars.Enqueue(new Car("Wheel", new List<Detail> {
+                                            new Detail(10,"Battery",false),
+                                            new Detail(15,"Engine",false),
+                                            new Detail(5,"Wheel",true )}));
 
             CarService carService = new CarService(startingAmountMoney, details, cars);
             carService.Work();
@@ -28,51 +40,41 @@ namespace Homework_number_50
 
     class Detail
     {
-        public Detail(int price, string title)
+        public Detail(int price, string title, bool isBroken)
         {
             Price = price;
             Title = title;
+            IsBroken = isBroken;
         }
 
         public int Price { get; private set; }
         public string Title { get; private set; }
+        public bool IsBroken { get; private set; }
     }
 
     class Car
     {
-        public Car(string damagedPart, bool isEngine, bool isBattery, bool isWheel)
+        private List<Detail> _details;
+
+        public Car(string damagedPart, List<Detail> details)
         {
             DamagedPart = damagedPart;
-            IsEngine = isEngine;
-            IsBattery = isBattery;
-            IsWheel = isWheel;
+            _details = details;
         }
 
         public string DamagedPart { get; private set; }
-        public bool IsEngine { get; private set; }
-        public bool IsBattery { get; private set; }
-        public bool IsWheel { get; private set; }
 
         public bool TryFix(Detail detail)
         {
-            const string TitleDetailEngine = "Engine";
-            const string TitleDetailBattery = "Battery";
-            const string TitleDetailWheel = "Wheel";
-
-            switch (detail.Title)
+            for (int i = 0; i < _details.Count; i++)
             {
-                case TitleDetailEngine:
-                    return IsEngine == false;
-
-                case TitleDetailBattery:
-                    return IsBattery == false;
-
-                case TitleDetailWheel:
-                    return IsWheel == false;
-
-                default:
-                    return false;
+                if (_details[i].Title == detail.Title && _details[i].IsBroken == true)
+                {
+                    return true;
+                }
             }
+
+            return false;
         }
     }
 
@@ -90,7 +92,7 @@ namespace Homework_number_50
             _cars = cars;
         }
 
-        private bool _isWorking => _cars.Count > 0 && _details.Count > 0 && _money > 0;
+        private bool IsWorking => _cars.Count > 0 && _details.Count > 0 && _money > 0;
 
         public void Work()
         {
@@ -127,7 +129,7 @@ namespace Homework_number_50
                 Console.ReadKey();
                 Console.Clear();
 
-                if (_isWorking == false)
+                if (IsWorking == false)
                 {
                     isExit = true;
                 }
@@ -151,7 +153,7 @@ namespace Homework_number_50
 
                 WriteCostRepair(priceRepair, detail);
 
-                if (TryReplacePart(detail, car) == true)
+                if (car.TryFix(detail) == true)
                 {
                     Console.WriteLine($"Всё хорошо мы заработали {priceRepair}");
 
@@ -197,11 +199,6 @@ namespace Homework_number_50
             int maxDivisor = 100;
 
             return (detail.Price * percentageCostDetail / maxDivisor) + detail.Price;
-        }
-
-        private bool TryReplacePart(Detail detail, Car car)
-        {
-            return car.TryFix(detail);
         }
 
         private void WriteCostRepair(int priceRepair, Detail detail)
